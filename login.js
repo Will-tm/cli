@@ -21,6 +21,8 @@ const request = require('superagent')
 const config = require('./config')
 const { ddHome, ddConfig, fileExists, promisify, saveConfig } = require('./utils')
 
+require('superagent-proxy')(request);
+
 module.exports = function login(cmd, options) {
   let promise
   if (fileExists(ddConfig)) {
@@ -53,6 +55,7 @@ function authenticate({username, password}) {
   return promisify(
     request.post(`${config.identity.rootUrl}/access/tokens`)
     .auth(config.identity.cli.identifier, config.identity.cli.secret)
+    .proxy(process.env.http_proxy)
     .type('form')
     .send({ grant_type: 'password', username, password })
   , 'end').catch(err => {

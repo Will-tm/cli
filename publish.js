@@ -28,6 +28,8 @@ const firebaseUtils = require('./utils/firebase')
 const buildMobile = require('./buildMobile')
 const firebase = require('firebase')
 
+require('superagent-proxy')(request);
+
 module.exports = function publish(cmd, options) {
   if (!fileExists('package.json')) return console.log('This does not appear to be a doubledutch extension project. No package.json found.')
   const extensionPackageJSON = JSON.parse(fs.readFileSync('package.json', 'utf8'))
@@ -180,6 +182,7 @@ async function publishBinary(accountConfig, packageJSON, cmd) {
     const location = `users/${firebase.auth().currentUser.uid}/staged/binaries/${extensionName}/${json.version}/build.zip`
     const uploadResult = await new Promise((resolve, reject) => {
       request.post(`https://firebasestorage.googleapis.com/v0/b/${config.firebase.storageBucket}/o?name=${encodeURIComponent(location)}`)
+      .proxy(process.env.http_proxy)
       .attach('metadata', Buffer.from(JSON.stringify({name: location, contentType: 'application/octet-stream'}), 'utf8'))
       .attach(location, `tmp/build.${config.baseBundleVersion}.zip`)
       .set('x-goog-upload-protocol', 'multipart')

@@ -6,6 +6,8 @@ const config = require('../config')
 const ddHome = resolveHome('~/.dd')
 const ddConfig = path.join(ddHome, 'config.json')
 
+require('superagent-proxy')(request);
+
 module.exports = {
   authenticate: require('./authenticate'),
   ddHome,
@@ -55,6 +57,7 @@ function requestAccessToken(username, refresh_token) {
   const invalidCredMessage = chalk.yellow('Invalid credentials') + '. Please run ' + chalk.blue('doubledutch login')
   return promisify(
     request.post(`${config.identity.rootUrl}/access/tokens`)
+    .proxy(process.env.http_proxy)
     .auth(config.identity.cli.identifier, config.identity.cli.secret)
     .type('form')
     .send({ grant_type: 'refresh_token', refresh_token: refresh_token })

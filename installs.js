@@ -20,6 +20,8 @@ const request = require('superagent')
 const { authenticate, getCurrentExtension, promisify } = require('./utils')
 const {cms} = require('./config')
 
+require('superagent-proxy')(request);
+
 module.exports = function installs(cmd, options) {
   const extension = getCurrentExtension()
   if (!extension) return
@@ -58,6 +60,7 @@ function cmsEventLookup(tokens, eventId) {
   function lookupIn(region) {
     return promisify(
       request.get(`${cms[region]}/api/applications/byid?id=${eventId}&currentApplicationId=${eventId}`)
+      .proxy(process.env.http_proxy)
       .set('authorization', `Bearer ${tokens[region]}`)
     , 'end')
     .then(res => {
